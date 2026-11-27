@@ -14,10 +14,12 @@
 - Classical database and AI references were checked against Crossref (`api.crossref.org`), DBLP/VLDB anthology pages, publisher or author pages, or official documentation via web search.
 - At the start of the session, `arxiv.org` was blocked by the network policy and the first attempts to read full text failed. With the owner's approval, a personal environment allowing arXiv, Crossref, DBLP, VLDB, OpenReview and neurips.cc was created. Everything cited as "read" below was read after that change.
 
-**Levels of reading.** Every claim is tagged with one of these:
-- **[FT]**: I read the cited section or table of the full text.
-- **[ABS]**: verified only from the abstract or metadata.
+**Levels of reading** (revision 2, unified after director review). Every claim is tagged with one of these:
+- **[FT]**: I read the cited sections or tables in the full text of the **pinned version**. **No paper was read cover to cover.** The exact sections read for each paper are listed in one place, the evidence ledger in Appendix A. Wherever this document or a GitHub comment summarises read levels, Appendix A is authoritative.
+- **[ABS]**: verified only from the abstract or arXiv metadata of the pinned version.
 - **[META]**: bibliographic metadata only, from Crossref, DBLP or the publisher. I did not read the content.
+
+**Version pinning.** Every arXiv citation refers to the version in the evidence ledger (e.g. `arxiv.org/abs/2610.25123v2`). The HTML full text I read was that same version: the version stamp printed in each downloaded HTML file was checked on 2026-11-27. PDF fallbacks are at `arxiv.org/pdf/<id>v<n>`. Revision 1 described some papers as "full text" in the PR summary while Appendix A listed only partial sections; that inconsistency is resolved in favour of Appendix A.
 
 **Peer review status.** Unless marked otherwise, every 2026 agent-memory paper here is an **arXiv preprint with no peer-reviewed venue stated** in its arXiv Comments field. The exceptions are flagged individually.
 
@@ -36,18 +38,18 @@ Legend:
 
 | # | Lead (as given) | Verdict | Primary source | Title (exact) | Authors | Dates (arXiv) | Venue / review status | Read level |
 |---|---|---|---|---|---|---|---|---|
-| 1 | MAP-Graph | VERIFIED | arXiv:2608.10509 (v1) | MAP-Graph: Provenance-Aware Shared Memory for Multi-Agent Workflows | Yiqi Wang, Zihao Yan, Jiaqi Zhang, Zhangkai Wu, Mingkai Zheng, Zequn Sun, Yanming Zhu, Taotao Cai | v1 2026-08-11 | Preprint; none stated | FT (§3.2–3.4, §4.4 "Scope and limitations") |
-| 2 | Tether ("Memories That Outlive Their Reasons") | VERIFIED | arXiv:2610.25123 (v2) | Memories That Outlive Their Reasons: Dependency-Tethered Memory for Tool-Using LLM Agents | Yiqi Wang, Jinqian Ju, Jiaqi Zhang, Zhangkai Wu, Yiqun Duan, Zequn Sun, Taotao Cai, Mingkai Zheng | v1 2026-10-18, v2 2026-10-22 | Preprint; none stated | FT (Abstract, §2–§6.3, §6.6, §7, §8) |
-| 3 | MemTX | VERIFIED (note name collision) | arXiv:2607.23929 (v2) | MemTX: Transactional Belief Commit for Stateful Agent Memory | Xiaoyang Li, Yiqi Wang, Haohui Lu, Zhi Chen, Mo Li, Pingan Song, Mingkai Zheng, Taotao Cai | v1 2026-07-27, v2 2026-07-28 | Comments: "Preprint"; footnote "Under review" | FT (§3.1–3.5, §5 "Scope blind spots", "Cost and isolation") |
-| 3b | (distinct) MemTxn | Not the lead; a different paper with a similar name | arXiv:2607.27834 (v1) | MemTxn: A Transaction Boundary for Source-Supported Updates and Complete-State Recovery in Agent Memory | Hanshuai Cui, Zhiqing Tang, Zhi Yao, Fanshuai Meng, Qianli Ma, Weijia Jia | 2026-07-30 | Preprint | ABS |
-| 4 | PACMI | VERIFIED (date discrepancy) | arXiv:2610.05732 (v1) | PACMI: Provenance-Aware Cascading Memory Invalidation for Long-Term LLM Agents | Yiqi Wang, Jiaqi Liu, Jiaqi Zhang, Zhangkai Wu, Yiqun Duan, Mingkai Zheng, Taotao Cai | v1 2026-10-05 | Preprint. A web search surfaced an SSRN record (abstract 7480138) with a 2026-09-17 date; I did not fetch it, so the discrepancy is unresolved. | FT (Abstract, §1 "Scope and assumptions", §6) |
-| 5 | MEMOREPAIR / memory repair | VERIFIED | arXiv:2605.07242 (v1) | MEMOREPAIR: Barrier-First Cascade Repair in Agentic Memory | Yang Zhao, Chengxiao Dai, Mengying Kou, Yue Xiu | 2026-05-08 | Preprint | FT (Abstract, §2.4 Thm 1 statement, §5 Limitations) |
-| 6 | PLACEMEM | VERIFIED | arXiv:2607.04089 (v1) | PLACEMEM: Toward a Compute-Aware Memory Plane for Lifelong Agents | Sukanta Ganguly | 2026-07-05 | Preprint; 6-page position paper (Comments: "6 pages, 3 Tables, 1 Figure") | FT (Abstract, §5) |
-| 7 | "When Evidence Changes" / **replay-gate** | VERIFIED paper; **MISMATCH on "replay-gate"** | arXiv:2610.03902 (v1) | When Evidence Changes: Evaluating Memory Repair and Re-reading in Language-Model Agents | Wenhui Chu | 2026-10-02 | Preprint; 43 pp. Internally pre-specified (hash-recorded), but "no external registry timestamp exists" (§5) | FT (Abstract, §2, §4, §5, §6.2, §6.3, §7, §8) |
-| 8 | MemShift | VERIFIED | arXiv:2611.02338 (v1) | MemShift: Separating Detection from Repair in LLM-Derived Personal Memory | Zichuan Xu, Haochen Zhang, Yuyang Dong, Makoto Onizuka, Chuan Xiao | 2026-11-02 | Preprint; code at github.com/zichuanxu/memshift | FT (Abstract, Limitations) |
+| 1 | MAP-Graph | VERIFIED | [arXiv:2608.10509v1](https://arxiv.org/abs/2608.10509v1) | MAP-Graph: Provenance-Aware Shared Memory for Multi-Agent Workflows | Yiqi Wang, Zihao Yan, Jiaqi Zhang, Zhangkai Wu, Mingkai Zheng, Zequn Sun, Yanming Zhu, Taotao Cai | v1 2026-08-11 | Preprint; none stated | FT (§3.2–3.4, §4.4 "Scope and limitations") |
+| 2 | Tether ("Memories That Outlive Their Reasons") | VERIFIED | [arXiv:2610.25123v2](https://arxiv.org/abs/2610.25123v2) | Memories That Outlive Their Reasons: Dependency-Tethered Memory for Tool-Using LLM Agents | Yiqi Wang, Jinqian Ju, Jiaqi Zhang, Zhangkai Wu, Yiqun Duan, Zequn Sun, Taotao Cai, Mingkai Zheng | v1 2026-10-18, v2 2026-10-22 | Preprint; none stated | FT (Abstract, §2–§6.3, Table 1, §6.6 + Table 3, §7, §8) |
+| 3 | MemTX | VERIFIED (note name collision) | [arXiv:2607.23929v2](https://arxiv.org/abs/2607.23929v2) | MemTX: Transactional Belief Commit for Stateful Agent Memory | Xiaoyang Li, Yiqi Wang, Haohui Lu, Zhi Chen, Mo Li, Pingan Song, Mingkai Zheng, Taotao Cai | v1 2026-07-27, v2 2026-07-28 | Comments: "Preprint"; footnote "Under review" | FT (§3.1–3.5, §5 "Scope blind spots", "Cost and isolation") |
+| 3b | (distinct) MemTxn | Not the lead; a different paper with a similar name | [arXiv:2607.27834v1](https://arxiv.org/abs/2607.27834v1) | MemTxn: A Transaction Boundary for Source-Supported Updates and Complete-State Recovery in Agent Memory | Hanshuai Cui, Zhiqing Tang, Zhi Yao, Fanshuai Meng, Qianli Ma, Weijia Jia | 2026-07-30 | Preprint | ABS |
+| 4 | PACMI | VERIFIED (date discrepancy) | [arXiv:2610.05732v1](https://arxiv.org/abs/2610.05732v1) | PACMI: Provenance-Aware Cascading Memory Invalidation for Long-Term LLM Agents | Yiqi Wang, Jiaqi Liu, Jiaqi Zhang, Zhangkai Wu, Yiqun Duan, Mingkai Zheng, Taotao Cai | v1 2026-10-05 | Preprint. A web search surfaced an SSRN record (abstract 7480138) with a 2026-09-17 date; I did not fetch it, so the discrepancy is unresolved. | FT (Abstract, §6, §7) |
+| 5 | MEMOREPAIR / memory repair | VERIFIED | [arXiv:2605.07242v1](https://arxiv.org/abs/2605.07242v1) | MEMOREPAIR: Barrier-First Cascade Repair in Agentic Memory | Yang Zhao, Chengxiao Dai, Mengying Kou, Yue Xiu | 2026-05-08 | Preprint | FT (Abstract, §2.4, Table 4 caption/text, §5) |
+| 6 | PLACEMEM | VERIFIED | [arXiv:2607.04089v1](https://arxiv.org/abs/2607.04089v1) | PLACEMEM: Toward a Compute-Aware Memory Plane for Lifelong Agents | Sukanta Ganguly | 2026-07-05 | Preprint; 6-page position paper (Comments: "6 pages, 3 Tables, 1 Figure") | FT (Abstract, §5) |
+| 7 | "When Evidence Changes" / **replay-gate** | VERIFIED paper; **MISMATCH on "replay-gate"** | [arXiv:2610.03902v1](https://arxiv.org/abs/2610.03902v1) | When Evidence Changes: Evaluating Memory Repair and Re-reading in Language-Model Agents | Wenhui Chu | 2026-10-02 | Preprint; 43 pp. Internally pre-specified (hash-recorded), but "no external registry timestamp exists" (§5) | FT (Abstract, §2, §4, §5, §6.2, §6.3, §7, §8; Tables 4, 19, 24 captions/rows) |
+| 8 | MemShift | VERIFIED | [arXiv:2611.02338v1](https://arxiv.org/abs/2611.02338v1) | MemShift: Separating Detection from Repair in LLM-Derived Personal Memory | Zichuan Xu, Haochen Zhang, Yuyang Dong, Makoto Onizuka, Chuan Xiao | 2026-11-02 | Preprint; code at github.com/zichuanxu/memshift | FT (Abstract, Limitations) |
 | 9 | Alleged NeurIPS 2026 exact-invalidation paper | **UNSUBSTANTIATED** | none | — | — | — | — | see §1.1 |
-| 10 | ContextPipe | VERIFIED | arXiv:2609.00749 (v1) | ContextPipe: Database-Inspired Context Assembly for Long-Horizon Agents | Peng Xu, Zuyu Zhang, Yuze Sun, Feng Tian, Long Wang, Chen Zhang | 2026-09-01 | **Workshop paper**: the text states "VLDB 2026 Workshop: ADS 2026" | FT (Abstract) |
-| 11 | Context Has a Price | VERIFIED | arXiv:2611.22238 (v1) | Context Has a Price: Adding and Removing Context for LLM Coding Agents under Prefix Caching | Zerui Yang, Miaomiao Dong, Quan Xue, Chaorui Zhang, Xuanyu Zheng, Xiyuan Wang, Haolin Ruan, Xueyan Niu, Guangcheng Song, Weixi Zhang, Wei Han, Bo Bai | 2026-11-17 | Preprint | FT (Abstract, Limitations) |
+| 10 | ContextPipe | VERIFIED | [arXiv:2609.00749v1](https://arxiv.org/abs/2609.00749v1) | ContextPipe: Database-Inspired Context Assembly for Long-Horizon Agents | Peng Xu, Zuyu Zhang, Yuze Sun, Feng Tian, Long Wang, Chen Zhang | 2026-09-01 | **Workshop paper**: the text states "VLDB 2026 Workshop: ADS 2026" | ABS |
+| 11 | Context Has a Price | VERIFIED | [arXiv:2611.22238v1](https://arxiv.org/abs/2611.22238v1) | Context Has a Price: Adding and Removing Context for LLM Coding Agents under Prefix Caching | Zerui Yang, Miaomiao Dong, Quan Xue, Chaorui Zhang, Xuanyu Zheng, Xiyuan Wang, Haolin Ruan, Xueyan Niu, Guangcheng Song, Weixi Zhang, Wei Han, Bo Bai | 2026-11-17 | Preprint | FT (Abstract, Limitations) |
 
 No arXiv entry in this set carries a journal reference or DOI other than arXiv's own.
 
@@ -75,6 +77,38 @@ The terms "replay gate" and "replay-gate" do not appear in arXiv:2610.03902.
 The lead's label should therefore be corrected to "read-set commit gate + re-reading baseline".
 
 ---
+
+## 2.0 Key-claim evidence table (added in revision 2)
+
+The director asked for exact locations, short supporting excerpts and explicit denominators for the key economic and safety claims. Each row below gives that for one claim.
+- **Excerpts** are verbatim from the pinned version, trimmed with "…" where needed.
+- **"Location"** refers to section or table numbers in that version.
+- **Fallback.** If HTML fails, every claim can be checked in the PDF at `https://arxiv.org/pdf/<id>v<n>`.
+
+### Economic claims
+
+| # | Claim | Source (pinned) | Location | Verbatim excerpt | Denominator / conditions |
+|---|---|---|---|---|---|
+| E1 | Full local-repair pipeline costs several times re-reading (development) | [2610.03902v1](https://arxiv.org/abs/2610.03902v1) | §6.2; Table 5 (App. D) | "in the E1 development cells the complete local-repair pipeline costs 3.96–5.03× the tokens of re-reading" | E1 revocation condition, development screening patients, two 7B models (Qwen2.5, Mistral), two record sizes. "all 32 E1 screening trajectories". Tokens = prompt + completion, **no cached-input discount**. Memory supplied in full, no retrieval. |
+| E2 | Same ordering on held-out patients | 2610.03902v1 | §6.2; Table 4 (App. C) | "local-repair full-trajectory tokens were 3.5–4.3× re-reading's over the four held-out conditions … re-reading was cheapest in every held-out cell" | 20 sealed patients per cell, small size only, four conditions × two models. Record payloads 59–155 tokens (§5). |
+| E3 | Reuse does not reach break-even within 20 uses on short records | 2610.03902v1 | §6.2; Table 19 (App. N) | "No cell's mean cumulative cost fell below re-reading's by k=20 (lowest ratio 1.21, 95 % interval 0.94–1.47)" | 8 development patients, 128 trajectories, 12 model–size–pipeline cells. 1 of 12 cells had a negative per-use term (break-even extrapolated to ~652 uses, not observed). |
+| E4 | Source-filtered re-reading cheapest at every length level | 2610.03902v1 | §6.3; Table 20 (P5) | "Source-filtered re-reading was the cheapest pipeline at every level in both models" | 8, 3, 5 and 6 patients at S, M, L and XL. 264 trajectories. Records lengthened only with **task-ineligible** documents. The paper notes "P5 was largely implied by the design". 225 of 520 extraction calls on added documents hit the output cap. |
+| E5 | **Cached-input pricing worsens memory relative to re-reading** | 2610.03902v1 | Table 24 (App. O) | Cumulative tokens at k=20 relative to re-reading, Qwen, XL: local repair **0.78** (no cache) → **0.92** (c=0.5) → **1.17** (c=0.25) → **1.67** (c=0.1). Source-filtered re-read 0.05 → 0.13. | Qwen only: the paper marks Mistral's cached ratios invalid (tokenizer error). Ratios are of mean totals. c = price of a repeated-prefix input token relative to uncached. |
+| E6 | Trace-derived dependency repair is not a quality-equivalent saving | [2611.19859v1](https://arxiv.org/abs/2611.19859v1) | §5.1; Table 1 | "extracted graph accuracy differs from full context by -11.8 percentage points (paired 95% CI [-15.3, -8.4]), with estimated total cost 3.0% lower" (gpt-6-luna); "-26.7 … cost 10.2% lower" (gpt-6.1-sol) | 120 workflow clusters × 2 repeats × 4 updates per model. Endpoint: complete-plan correctness. Cost at gateway list rates, "Cached-input discounts are ignored" (§4.2). |
+| E7 | Adding retrieved code raises cost under cheap cached input | [2611.22238v1](https://arxiv.org/abs/2611.22238v1) | §4 "Cost rises"; Table 4 | "Runs with the package take fewer turns but cost at least 33–42% more at c=0.1 and 25–33% more at c=1 (Table 4)" | Paired E5−E0 differences per benchmark and model, using open models served locally. Cost uses the paper's Eq. 1 with output-price multiplier p (p=4 in Table 1). |
+| E8 | The sign of the removal saving flips with cache price | 2611.22238v1 | §5 "The sign flips"; Fig. 3 | "Rolling masking raises cost at c=0.1 by 116% for Qwen3.6-27B and by 87% for Qwen3-Coder. It lowers cost at c=1 by 19% and 25%." Crossover "near c=0.5". | Preregistered tests (Table 3), Holm-corrected. The abstract's broader range "38–116%" covers several methods; only the rolling-masking figures are excerpted here. |
+
+### Safety claims
+
+| # | Claim | Source (pinned) | Location | Verbatim excerpt | Denominator / conditions |
+|---|---|---|---|---|---|
+| S1 | Edge-less fact memory publishes most upstream-failing objects; Tether almost none | [2610.25123v2](https://arxiv.org/abs/2610.25123v2) | Table 1; §6.2 | Table 1 unsafe at d≥1: Flat **.619**, Tether **.003**. §6.2: "4 of the 1,364 candidates at d≥1 are published while failing, against 844 for Flat" | Fallout-Mixed, 60 synthetic worlds, 720 requests, 2,903 candidates per memory, **reuse** instruction, one hosted model at temperature 0. Unsafe = share of candidates published while failing. |
+| S2 | Tether degrades when relations arrive in a separate session | 2610.25123v2 | §6.6; Table 3 | Unsafe at d≥1 under reuse: same **.006**, before **.094**, after **.221**. "the last rests on few worlds (+.215 [.074, .432] over same)" | Fallout-Split: 20 worlds, 959 candidates, 451 at d≥1. Edge recall 1.000/.840/.658. |
+| S3 | Small provenance loss gives large leakage | [2605.07242v1](https://arxiv.org/abs/2605.07242v1) | §3.4 text and Table 4; §5 | "dropping 1% of influence edges yields 17.7% Leak (≈18× amplification)" | MemoRepair component-ablation setting (ToolBench / MemoryArena harness). Leak = invalidated memory remaining exposed. |
+| S4 | Coverage-derived reachability ≠ falsification | [2609.25130v1](https://arxiv.org/abs/2609.25130v1) | §V-B; Table III | "It catches 131 of the 151 flips, recall 0.868, and reaches 0.415 precision" | Held-out split: 604 claims, 151 execution-verified flips. testmon supplied a verdict for 80% of claims, and the rest are charged as holds. |
+| S5 | Undeclared transcription defeats lineage checks | [2607.23929v2](https://arxiv.org/abs/2607.23929v2) | §5 "Scope blind spots" | "Every backbone fails every case for every method, including MemTX." | Source-scope family of the hardened suite (56 cases in total; family size not extracted), five backbones, nine methods. |
+| S6 | Memory writers fabricate authority; executors act on it | [2609.01836v2](https://arxiv.org/abs/2609.01836v2) | Abstract (45.4%); §4.2 (99.0%) | "writers create false authority for up to 45.4% of unauthorized requests"; "With the erroneous memories, an unauthorized action occurs in 99.0% of trials" | 45.4% is a maximum across seven writer LLMs under typed incremental updates; I did not locate the per-writer table. 99.0% is conditional on memories that contain false authority, replayed behind the same request. |
+| S7 | Inherited input versions are the missing ingredient for detecting stale plans | [2609.03340v2](https://arxiv.org/abs/2609.03340v2) | Abstract; §6.2 | "supplying inherited input versions raises detected handoff conflicts from 0/30 to 30/30" | 30 model-generated five-agent workflows, one model family, one inserted revision. |
 
 ## 2. What the lead papers actually claim
 
@@ -195,13 +229,14 @@ For each paper, this section records the mechanism, how dependencies are obtaine
 - Reuse does not rescue memory: in a 20-use sweep, the per-use term stayed positive in 11 of 12 cells. "No cell's mean cumulative cost fell below re-reading's by k=20." The paper concludes "graph-local repair saves recomputation, not tokens" (§6.2).
 - With ~10k-token records padded by *task-ineligible* documents, memory undercut full re-reading after 2–14 uses. Part of that saving came from truncated extraction (225 of 520 extraction calls hit the output cap). **Source-filtered re-reading remained cheapest at every level** (§6.3).
 - Conclusion (§7): "The baseline to beat is therefore the strongest re-reading pipeline (source filtering, cached input), not re-reading everything at full price."
+- **Cached-input pricing (Table 24, Qwen only):** a prefix discount makes memory *worse* relative to re-reading. At XL, local repair's 20-use cumulative ratio rises from 0.78 with no cache to 1.67 at c=0.1 (key claim E5).
 
 **Limitations (§8).**
 - One dataset, small n (3–20 patients per cell), lexical scorers written after seeing outputs.
 - "costs are tokens, not prices or latency".
 - "Greedy decoding was not bit-reproducible on the serving stack."
 
-### 2.8 MemShift (arXiv:2611.02338) [FT: abstract, limitations; ABS otherwise]
+### 2.8 MemShift (arXiv:2611.02338v1) [FT, partial: Abstract and Limitations only]
 
 **Design.** A benchmark that separates *detection* (noticing that an input changed) from *repair* (producing the correct new value). It covers five shifts: revision, deletion, redefinition, writer switch and export. Gold values and dependencies are fixed before any text is generated, and a deterministic scorer is used.
 
@@ -213,14 +248,14 @@ For each paper, this section records the mechanism, how dependencies are obtaine
 - It supports separating invalidation from re-derivation.
 - It supports the idea that *executable* re-derivation beats free-text LLM re-derivation.
 
-### 2.9 ContextPipe (arXiv:2609.00749) [FT: abstract]
+### 2.9 ContextPipe (arXiv:2609.00749v1) [ABS]
 
 - A **VLDB 2026 ADS workshop** paper. It frames context assembly as query execution (Plan → Bind → Optimize → Execute → Feedback), with a catalog and a cache-aware optimizer.
 - Preliminary evaluation on the SWE-bench Pro Qutebrowser subset: −31% tokens, −23% LLM calls and −9% response time against append-only context, "at a cost in lower KV cache-hit ratio" (Abstract, v1).
 - A secondary site reported 30.1% and 17.2%. Those figures do **not** match arXiv v1, which is the only version.
 - **Relevance:** a database framing of *context assembly*, not of knowledge validity.
 
-### 2.10 Context Has a Price (arXiv:2611.22238) [FT: abstract, limitations]
+### 2.10 Context Has a Price (arXiv:2611.22238v1) [FT, partial: see Appendix A]
 
 **Setup.** More than 20,000 runs on SWE-bench Verified, SWE-bench and Loc-Bench, with uncached-input, cached-input and output tokens priced separately.
 
@@ -389,7 +424,7 @@ These are three different things, and the literature conflates them:
    - Source-filtered re-reading was the cheapest pipeline at every level tested (2610.03902 §6.3).
    - Full-context recomputation dominated trace-derived graph repair at quality parity (2611.19859 Table 1).
    - Dedicated memory often underperforms naive RAG (2610.34073).
-2. **Prompt caching erodes savings.** At a 0.1× cached-input price, adding or removing context can *raise* cost (2611.22238). Cheap re-reading of a stable prefix is the strongest economic competitor to any reuse scheme.
+2. **Prompt caching erodes savings.** At a 0.1× cached-input price, adding or removing context can *raise* cost (2611.22238; E7, E8). In 2610.03902 Table 24, the cached-input discount turns local repair's advantage at XL (0.78×) into a loss (1.67×) (E5). Cheap re-reading of a stable prefix is the strongest economic competitor to any reuse scheme. **Scope caveat:** both studies use open models, token-stream pricing rather than invoices, and specific workloads (coding agents; ICU medication lists).
 3. **Dependency coverage is fragile, and failures are silent.**
    - 1% of edges dropped gives 17.7% leak (MemoRepair §5).
    - 30% of edges dropped gives 0% plan accuracy (2611.19859 Table 2).
@@ -416,28 +451,35 @@ These are three different things, and the literature conflates them:
 - Measure **full-pipeline cost**, with cached and uncached input and output tokens priced separately, plus query cost and latency.
 - Use an **execution oracle**, not an LLM judge.
 - Materiality validators must declare a **soundness class**. Unknown coverage must **fail closed**.
-- Expect any win to be **regime-bound**: high replay cost, high immaterial-change rate, cheap validators. The likely sound domain is monotone or positive conclusions, where absence checks are not needed.
+- Expect any win to be **regime-bound**: high replay cost, high immaterial-change rate, cheap validators. Validation cost depends on **access paths, not monotonicity alone**. An indexed absence or min check can be cheap, and a monotone conclusion can need an expensive check. E001_PROPOSAL H2 treats this as a hypothesis to test, not a result.
 
 ---
 
-## Appendix A. Sources actually read in full text (sections)
+## Appendix A. Evidence ledger (authoritative read levels)
 
-- **2610.25123** Tether: Abstract, §2–6.3, §6.6 (Table 3), §7, §8, §9
-- **2610.03902** When Evidence Changes: Abstract, §1–2, §4, §5, §6.2, §6.3, §7, §8, §9; App. A excerpts
-- **2609.03340** PlanFence: Abstract, §3 (Def. 1, Assumption 1, Prop. 1), §4, §7, App. E.3
-- **2611.19859** When Facts Change: §1–5.2 (Tables 1–2), §7–9
-- **2607.23929** MemTX: Abstract, §3.1–3.5, §5 (scope blind spots, ablations, cost)
-- **2608.10509** MAP-Graph: Abstract, §3.2–3.4, §4.4 scope and limitations
-- **2605.07242** MemoRepair: Abstract, §5
-- **2610.05732** PACMI: Abstract, §6, §7
-- **2607.04089** PLACEMEM: Abstract, §5
-- **2611.02338** MemShift: Abstract, Limitations
-- **2609.00243** Invalidation Contracts: Abstract, §6.4
-- **2611.22238** Context Has a Price: Abstract, Limitations
-- **2609.25130** Impact Is Not Invalidation: Abstract, §VI
-- **2609.01836** EAL-Bench: Abstract, Limitations
+- Every row was read on 2026-11-27 from `https://arxiv.org/html/<id><ver>`. The version stamp inside each downloaded file matched the pinned version.
+- "Sections read" lists everything I read; nothing else in the paper was read.
+- **No paper was read cover to cover.** Papers with only abstract-level reading are [ABS] and are not listed here.
 
-All other sources are [ABS] or [META], as marked.
+| arXiv ID (pinned) | Short name | Sections read (full text) | Level |
+|---|---|---|---|
+| [2610.25123v2](https://arxiv.org/abs/2610.25123v2) | Tether | Abstract; §2–§6.3; Table 1; §6.6 + Table 3; §7; §8; §9 | FT, partial |
+| [2610.03902v1](https://arxiv.org/abs/2610.03902v1) | When Evidence Changes | Abstract; §1–§2; §4; §5; §6.2; §6.3; §7; §8; §9; App. A excerpts; captions of Tables 1–29; rows of Table 24 | FT, partial |
+| [2609.03340v2](https://arxiv.org/abs/2609.03340v2) | PlanFence | Abstract; §3 (Def. 1, Assumption 1, Prop. 1); §4; §6.2 opening; §7; App. E.3 | FT, partial |
+| [2611.19859v1](https://arxiv.org/abs/2611.19859v1) | When Facts Change | §1–§5.2 (Tables 1–2); §7–§9 | FT, near-complete (§5.3–§6 not read) |
+| [2607.23929v2](https://arxiv.org/abs/2607.23929v2) | MemTX | Abstract; §3.1–§3.5; §5 ("Scope blind spots", "Ablations", "Pricing the strong gate", "Cost and isolation") | FT, partial |
+| [2608.10509v1](https://arxiv.org/abs/2608.10509v1) | MAP-Graph | Abstract; §3.2–§3.4; §4.4 "Scope and limitations"; §4.5 opening | FT, partial |
+| [2605.07242v1](https://arxiv.org/abs/2605.07242v1) | MemoRepair | Abstract; §2.4 (problem statement); §3.4 Table 4 caption and text; §5 | FT, partial |
+| [2610.05732v1](https://arxiv.org/abs/2610.05732v1) | PACMI | Abstract; §6; §7 | FT, partial |
+| [2607.04089v1](https://arxiv.org/abs/2607.04089v1) | PLACEMEM | Abstract; §5 | FT, partial |
+| [2611.02338v1](https://arxiv.org/abs/2611.02338v1) | MemShift | Abstract; Limitations | FT, partial |
+| [2609.00243v1](https://arxiv.org/abs/2609.00243v1) | Invalidation Contracts | Abstract; §6.4 | FT, partial |
+| [2611.22238v1](https://arxiv.org/abs/2611.22238v1) | Context Has a Price | Abstract; §2 "Reference prices"; §4 "Cost rises"; §5 "The sign flips"; table captions; Limitations | FT, partial |
+| [2609.25130v1](https://arxiv.org/abs/2609.25130v1) | Impact Is Not Invalidation | Abstract; §V-B (Table III); §VI | FT, partial |
+| [2609.01836v2](https://arxiv.org/abs/2609.01836v2) | EAL-Bench | Abstract; §4.2 excerpt; Limitations | FT, partial |
+| [2609.00749v1](https://arxiv.org/abs/2609.00749v1) | ContextPipe | Abstract (incl. workshop reference line) | ABS |
+
+All other arXiv sources in §3 are [ABS], from arXiv API metadata and abstracts. Classical sources in §4 are [META] unless marked.
 
 ## Appendix B. Not verified / deferred
 - SSRN record 7480138 (PACMI date discrepancy): not fetched.
@@ -445,3 +487,7 @@ All other sources are [ABS] or [META], as marked.
 - McSherry et al., "Differential Dataflow" (CIDR 2013): not verified in this pass.
 - The NeurIPS 2026 near-miss titles listed in §1.1: titles only.
 - Microsoft SQL Server Query Notifications and Materialize: not verified in this pass.
+- EAL-Bench (2609.01836v2): I did not locate the per-writer table behind "up to 45.4%". The figure is cited from the abstract only.
+- MemTX (2607.23929v2): the number of cases in the source-scope family was not extracted.
+- MemoRepair (2605.07242v1): which benchmark the 1%-edge-drop ablation ran on was not confirmed beyond the Table 4 text.
+- **Director-side verification gap:** the director's environment could not fetch the HTML of 2610.03902, 2610.25123 and 2611.19859. Every key claim in §2.0 names a pinned version and a section or table, so it can be checked against the PDF (`https://arxiv.org/pdf/<id>v<n>`).

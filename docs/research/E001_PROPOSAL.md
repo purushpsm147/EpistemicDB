@@ -1,178 +1,263 @@
 # E001_PROPOSAL — Narrowed research hypothesis and experiment design
 
-**Task:** RES-01 (issue #3) · **Gate:** G01 · **Author:** Claude (research lead) · **Date:** 2026-11-27
+**Task:** RES-01 (issue #3) · **Gate:** G01 · **Author:** Claude (research lead) · **Revision:** 2 (2026-11-27), responding to the director review on [PR #4](https://github.com/purushpsm147/EpistemicDB/pull/4) at head `2113214`.
 
-**Status:** proposal only. This document is **not** the G02 preregistration. No thresholds are final, nothing is implemented, and no technology stack is chosen. Evidence references point to `PRIOR_ART.md` (written PA §x).
+**Status:** proposal only. This document is **not** the G02 preregistration. No thresholds are final, nothing is implemented, and no technology stack is chosen. Evidence references point to `PRIOR_ART.md` (written PA §x). Key claims are cited by their ID in PA §2.0 (E1–E8 economic, S1–S7 safety).
+
+## 0. Director decisions recorded (PR #4 review, 2026-11-27)
+
+| # | Question (rev. 1 §14) | Director answer | Where applied |
+|---|---|---|---|
+| D1 | Restrict the contribution? | **Yes.** The primary contribution is exact replay vs materiality validation. | §2 |
+| D2 | Simulation first? | **Yes**, deterministic simulation first. | §12 |
+| D3 | Authorization rule | Conservative authorization is **mandatory**. No unsafe baseline is needed except an explicitly labelled negative control. | §7, §5 |
+| D4 | Second literature pass | A **targeted** second literature pass is required **before protocol freeze** (G02). | §14 |
+| D5 | External replication | **Optional** unless a central claim depends on it. | §14 |
+
+### Review corrections and where they are addressed
+
+| Review item | Resolution |
+|---|---|
+| (1) Strongest-baseline set omitted TTL and query-result cache | §5. A single "eligible tuned baseline" set is used everywhere, including adaptive TTL and prompt-cached exact replay |
+| (2) H2 stated as if a theorem | §2 H2 is rewritten as a hypothesis with both counterexample families to be tested |
+| (3) Canonical replay with column-dropping or tolerance is not sound | §5. Lossless canonicalization (a baseline) is separated from invariance-based canonicalization (a materiality candidate that needs a sufficiency argument) |
+| (4) Coverage: unlogged calls not detected; recompute does not cure missing access | §3.3 and §4. Detectable and latent coverage loss are separated; abstain/deny is a first-class outcome |
+| (5) Authorization semantics; strictness overclaimed | §7. Grant semantics defined. Union-of-required-grants ≡ intersection-of-permitted-principals is stated; the "stricter" claim is withdrawn. Predicate/absence scope and revocation race added |
+| (6) Snapshot/use semantics; denominators; zero ≠ proof | §4 and §9 |
+| (7) K5 direction suspect | §13. K5 is replaced with an expected-cost criterion that conditions on recompute probability |
+| "No market prevalence from an arbitrary grid" | §8 and §13. Prevalence-based criteria are removed; regimes are reported only as parameter regions |
 
 ---
 
-## 1. Why the original E001 question must be narrowed
+## 1. Why the original E001 question is narrowed
 
-The README asks whether "execution-derived observation receipts and materiality-aware validation reduce total investigation cost at matched correctness, freshness and authorization compared with strong TTL, prompt-cached recomputation and exact query replay baselines". The prior-art review changes that question in four ways:
+1. **Dependency-directed invalidation is not novel** (PA §6.1).
+2. **The economic default favours re-reading and recomputation** once the full pipeline and cached-input prices are counted (E1–E5, E7–E8). This evidence comes from specific workloads and open models (PA §6.2 scope caveat).
+3. **Coverage failures are silent and severe** (S2, S3, S5).
+4. **Reachability ≠ materiality** (S4). A contribution may remain here, but it must be precise about soundness.
 
-1. **Dependency-directed invalidation is not novel.** TMS, view maintenance, build systems and at least five 2026 agent-memory systems already do it (PA §6.1). E001 must not test "does invalidation help?".
-2. **The economic default favours re-reading and recomputation** once full-pipeline cost and prompt caching are priced (PA §6.2 items 1–2). A win for reuse is plausible only in specific regimes, and E001 must find them or show they do not exist.
-3. **Dependency or observation coverage failures are silent and severe** (PA §6.2 item 3). Any reuse scheme must fail closed on unknown coverage, and E001 must measure what that costs.
-4. **Reachability ≠ materiality** (PA §6.2 item 4). This is where a contribution may remain. It must be made precise about soundness, because LLM materiality judgements are empirical only.
-
-## 2. Narrowed hypotheses
+## 2. Hypotheses (primary contribution restricted per D1)
 
 **Unit of study.** A *knowledge item* K, made of:
 - a conclusion c;
 - the observations O = {(qᵢ, source, version/time, result rᵢ, completeness flag)} that were read to reach it;
-- a derivation f (deterministic code, or LLM inference);
-- an authorization context (principal, scopes of inputs).
+- a derivation f (deterministic in E001a);
+- an authorization context (§7).
 
-**Reuse event.** At a later time t′, a principal requests c. A *policy* decides one of three things: reuse K, validate-then-reuse, or recompute.
+**Reuse event.** At t_req, a principal requests c. A policy outputs one of three things: **serve stored c**, **serve a freshly recomputed c**, or **abstain/deny**.
 
 ### H1: Materiality vs exact replay (primary)
-- **Claim.** For knowledge items whose validity condition can be expressed as an executable predicate P over the source, *materiality validation* costs less than *exact lazy replay*, at **zero observed unsafe reuse** (both are designed to be sound under complete observation).
-- **What each policy does.**
-  - Materiality validation: evaluate P on current state; reuse if P holds, otherwise recompute.
-  - Exact lazy replay: re-execute every qᵢ; reuse if every rᵢ is byte-identical, otherwise recompute f.
-- **Where we expect a win.** Only in the region where (a) replay cost ≫ predicate cost, *and* (b) the rate of immaterial changes (source changed, conclusion did not) is high.
-- **Expected outcome outside that region.** Exact replay, canonical replay or plain recompute-with-prompt-cache is no worse.
+- **Claim.** There exist parameter regions where *materiality validation* has lower expected total cost than *exact lazy replay* while meeting the same safety requirement (§9).
+  - Materiality validation: evaluate an executable predicate P; serve if P holds, otherwise recompute.
+  - Exact lazy replay: re-execute all qᵢ; serve if every result is byte-identical after **lossless** canonicalization, otherwise recompute.
+- **Expected region:** replay cost ≫ predicate cost, *and* a high immaterial-change rate.
+- **The comparison is not only against B3.** H1 is also tested against **every eligible tuned baseline** (§5). The primary contrast is materiality vs replay (D1); the others decide whether the contrast matters in practice.
 
-### H2: Soundness boundary (theory plus test)
-- **Claim.** A cheap sufficient predicate exists for *monotone or positive* conclusions (existence, membership, "at least one approval").
-- **The hard class.** Conclusions with universal or absence components ("cheapest", "none overdue", top-k, count = n). For these, any **sound** predicate must check the absence of new satisfying records. Its cost approaches re-executing the aggregating query, so the materiality advantage should vanish or shrink. This links to irrelevant-update and query-independence results for restricted query classes (Blakeley et al.; Elkan; Levy & Sagiv; PA §4).
-- **What E001 should do.** Measure where the boundary falls in practice. Do not assume it.
+### H2: Validation cost depends on access paths, not monotonicity alone (hypothesis, not theorem)
+- **Rev. 1 claimed** that sound predicates are cheap for monotone or positive conclusions and near replay-cost for absence or aggregate conclusions. **That is withdrawn as a general statement.**
+- **Counterexample family A (monotone but expensive).** A conclusion like "a path exists from X to Y" or "some record satisfies an expensive join or external-API condition". Even with the original witness recorded, the sufficient check (the witness still satisfies the predicate) may need costly calls when the witness's own validation is expensive or the source has no point lookup.
+- **Counterexample family B (absence or aggregate but cheap).** "No overdue invoice" or "A is the minimum price". These can be validated cheaply when the source has a suitable index or a maintained aggregate: an indexed existence probe, a B-tree min lookup, a version counter on the predicate's range, or result-change notification (Oracle QRCN, PA §4).
+- **Hypothesis to test.** Validation cost is predicted by (i) the access paths available at the source (point, range, indexed aggregate, notification, none), (ii) the witness structure of the conclusion, and (iii) the predicate's selectivity. Monotonicity is predicted to be insufficient on its own. E001a must include both counterexample families as named workload cells.
 
-### H3: Coverage failure modes (safety)
-- **Claim.** Under *incomplete* observation every validator can be unsafe, whatever its class. Examples of incomplete observation: an unlogged tool call, a truncated page, an LLM-inferred dependency, a predicate omitting justified scope.
-- **What fail-closed must do.** Treat any item with unknown coverage, unknown permission or a non-deterministic source as recompute. This removes unsafe reuse but erodes savings.
-- **What we measure.** The size of that erosion.
+### H3: Coverage loss (safety)
+- **Detectable loss** is coverage loss the policy can observe: a truncated or paginated result without a completion flag, a known tool call with no receipt, an unversioned source where the validator class needs versions, an unknown permission state. Every policy must **fail closed** on it (§3.3).
+- **Latent loss** is coverage loss the policy *cannot* observe: an unlogged call, information that entered via the prompt rather than a tool, a side channel, a derivation that used a fact not in O. **No receipt-based policy can detect latent loss.** Fail-closed does not help.
+- **What H3 measures.** The unsafe rate of every policy under injected latent loss, and the savings erosion caused by fail-closed under detectable loss. These are separate quantities.
+- **What protects against latent loss.** Only an architectural assumption, *all reads go through a mediated, instrumented gateway*, can bound it. E001a states this assumption explicitly and also runs with it violated.
 
-### H0: Null and kill framing
-- **The null.** No validation-based policy beats the best tuned baseline, chosen from {exact replay, canonical replay, version-stamp validation, recompute with prompt caching, query-result cache}, at matched safety in any regime with non-trivial prevalence.
-- **If the null holds, it is a publishable negative result.** We record it and do not tune it away.
+### H0: Null
+- No validation-based candidate beats the best eligible tuned baseline (§5) under the safety requirement in any declared parameter region (§8). This would be a valid negative result. It must be published, not tuned away.
 
-## 3. Soundness limits (definitions E001 must enforce)
+## 3. Soundness definitions
 
-### 3.1 Three soundness classes for a validator V attached to K
+### 3.1 Validator soundness classes
 
 | Class | Definition | Allowed claim |
 |---|---|---|
-| **S1 Deterministic sufficient** | There is a machine-checkable argument that, for every source state s, V(s)=true ⇒ f(observe(s)) = c. This needs f to be deterministic and observation to be complete. | "Reuse is correct under the stated assumptions." |
-| **S2 Empirically validated** | V's false-accept rate is estimated on held-out worlds with an execution oracle, with a confidence interval. | "Reuse error ≤ x with confidence y on distribution D." It does not transfer off-distribution. |
-| **S3 Unverified inference** | V is an LLM judgement or a heuristic with no estimate. | No safety claim. Use only as a pre-filter in front of S1/S2 or full recompute. |
+| **S1 Deterministic sufficient** | A machine-checkable argument shows that, for all source states s satisfying the stated assumptions (complete observation, deterministic f, mediated reads), V(s)=true ⇒ f(observe(s)) = c. | "Serving is correct under the stated assumptions." It is not a claim about latent coverage loss. |
+| **S2 Empirically validated** | V's false-accept rate is estimated on held-out worlds against the oracle, with a confidence interval. | "False-accept ≤ x (one-sided 95% upper bound) on distribution D." It does not transfer off-distribution. |
+| **S3 Unverified** | An LLM judgement or a heuristic. | No safety claim. A pre-filter only. |
 
-### 3.2 Explicit non-implications E001 must test, not assume
-1. **A predicate true at derivation time is not necessarily sufficient later.** Example: c = "Supplier A is the cheapest eligible supplier". The predicate P = "A still eligible ∧ A.price unchanged" stays true when a *new* supplier B with a lower price is inserted. That is a phantom (Eswaran et al. 1976; PA §5.2). A sound P must also assert "¬∃ eligible x: x.price < A.price", i.e. re-run the aggregate.
-2. **Preserving the observation is not truth.** An identical replay result shows only that the *source* did not change for those queries. It does not show that the source was correct, or that f (if an LLM) derived c correctly. Replay validates *staleness*, not *truth* (Director Desk #1; DerivAudit, PA §3).
-3. **Version equality is sufficient for staleness but not necessary.** It over-fires on immaterial changes; Tether's version trigger over-withdraws 9.6% (PA §2.1). Materiality aims to recover that waste without losing sufficiency.
-4. **Reachable ≠ material.** Coverage-derived reach has 0.415 precision for falsification (PA §3, 2609.25130).
-5. **Validation is not atomic with use.** Without a snapshot shared with the effect, a change can land between validate and use (TOCTOU; PA §5.4). E001 must inject this and report it separately.
+### 3.2 Non-implications E001 must test
+1. **A predicate true at derivation is not sufficient later.** Example: phantom insert of a cheaper supplier against "A is cheapest" (PA §5.2).
+2. **Observation preservation is not truth.** Replay equality shows the source did not change for those queries. It shows nothing about whether the source, or f, was correct.
+3. **Version equality is sufficient for staleness under complete observation but is not necessary.** It over-fires on immaterial changes (Tether's version trigger, PA §2.1).
+4. **Reachable ≠ material** (S4).
+5. **Validation is not atomic with use** (§4).
+6. **Lossy canonicalization is a materiality claim, not replay.** Dropping columns, tolerating float differences or ignoring order where f is order-sensitive is sound only with a *sufficient-invariance argument*: f(r) = f(canon(r)) for every r reachable under the assumptions. Without such an argument it is S2 at best (§5, C-policies).
 
-### 3.3 Fail-closed conditions (mandatory for every candidate policy)
-The policy must recompute or deny, never reuse, if any of these hold:
-- any observation lacks a completeness flag, or is flagged truncated or paginated-incomplete;
-- any source is marked non-deterministic or lacks versioning, and the validator class needs it;
-- the reader's authorization over *every* input is unknown, or narrower than the deriver's (see §6);
-- the validator's soundness class is S3 and no S1/S2 check follows;
-- the event or notification lag bound is unknown, for push-based invalidation variants.
+### 3.3 Fail-closed conditions (detectable coverage loss)
+**Rule.** The policy must not serve stored c if any of the conditions below holds. What it must do instead depends on whether a fresh recompute can be trusted:
 
-## 4. Baselines (all tuned with equal effort)
+| Condition | Action |
+|---|---|
+| Any observation lacks a completion flag, or is flagged truncated or partial | Recompute **only if** the recompute can itself obtain complete observations. Otherwise **abstain** |
+| A source is non-deterministic or unversioned and the validator needs versions | Recompute, or abstain if the recompute is also non-deterministic for c |
+| The reader's authorization over the required record set (§7) is unknown or insufficient | **Deny.** Recompute does not cure missing access |
+| The validator is S3 with no S1/S2 follow-up | Fall through to B3 or recompute |
+| The push-invalidation lag bound is unknown (push variants only) | Treat as no notification |
+
+**Key point.** Recompute does not cure an incomplete source or missing access. A fresh recompute over an incomplete or inaccessible source is just as wrong. In those cases the correct output is abstain or deny, and that is scored separately (§9).
+
+## 4. Time and snapshot semantics
+- **Timestamps per request:**
+  - **t_req**: request arrives.
+  - **t_val**: the validation or replay reads execute; this can be an interval [t_val0, t_val1] if reads are not atomic.
+  - **t_serve**: the answer is returned.
+  - **t_use**: the consumer acts. E001a models t_use = t_serve + Δ_use with a configurable Δ_use.
+- **Source model.** A versioned store with a global logical clock. It offers optional **snapshot reads** (all reads in [t_val0, t_val1] at one version) or **non-snapshot reads** (each read at its own version), configurable per source to model external APIs.
+- **Primary correctness reference:** the oracle's c computed on the full state at **t_serve**.
+- **Secondary reference:** the oracle's c at **t_use**, which measures time-of-check to time-of-use (TOCTOU) exposure. Reported separately and never mixed into the primary metric.
+- **Concurrency injection.** Writes land inside [t_val0, t_val1], inside (t_val1, t_serve], and inside (t_serve, t_use], each at configurable rates. Revocations are injected the same way (§7).
+
+## 5. Baselines: the single eligible tuned set
+
+**Eligibility.** A baseline is *eligible* for H1/H0 comparisons if, after tuning on development seeds, it meets the safety requirement (§9). Baselines that cannot meet it are kept and reported as **labelled negative controls** (D3), never as the comparison point.
 
 | ID | Policy | Notes |
 |---|---|---|
-| B0 | **Recompute always.** Re-run queries and inference at every request. | Price inference with cached-input rates for stable prefixes. This is the "prompt-cached recomputation" baseline (PA §2.10). |
-| B0f | **Source-filtered recompute.** Like B0, but re-reads only the sources the task allows. | The strongest re-reading pipeline in 2610.03902 (PA §2.7). |
-| B1 | **Strong TTL.** Reuse if age < τ. | τ tuned per workload on development seeds to minimize cost subject to the safety constraint. Report its unsafe rate honestly; TTL is not sound. |
-| B2 | **Query-result cache** keyed by exact query text, invalidated by object/table change. | The MySQL-query-cache / Oracle Object Change Notification (OCN) analogue (PA §4). |
-| B3 | **Exact lazy replay.** At reuse, re-run all recorded qᵢ and compare result hashes. Reuse on equality, otherwise recompute f. | Sound under deterministic sources, complete observation and deterministic f. **A serious candidate** (README). |
-| B4 | **Canonical replay.** Like B3, but results are canonicalized first: ordering, irrelevant columns, float tolerance. | Early cutoff at the observation level (build systems à la carte). |
-| B5 | **Version-stamp validation.** Compare the source versions of the observed records or keys. | PlanFence / Invalidation Contracts analogue (PA §3). Needs versions to be available. |
-| B6 | **Dependency-cascade memory.** Tether/TMS-style withdrawal over recorded edges. | Withdrawal triggers recompute. |
+| B0 | **Recompute always** (queries plus inference) | Inference priced with a cached-input multiplier for stable prefixes. The prompt-cached recompute baseline |
+| B0f | **Source-filtered recompute** | Re-reads only task-allowed sources (2610.03902's strongest pipeline; E4) |
+| B1 | **Fixed TTL** τ | τ tuned per workload. Not sound, so eligible only if it meets the safety requirement in that region |
+| B1a | **Adaptive TTL** | τ set per item from the observed change rate of its sources (e.g. estimated hazard), plus HTTP-style revalidation (RFC 9111) on expiry. Same eligibility rule as B1 |
+| B2 | **Query-result cache** keyed by query text plus parameters, invalidated on any write to a referenced table/object | The OCN / MySQL query-cache analogue. Granularity is a tuned parameter (table vs row-range) |
+| B3 | **Exact lazy replay** with lossless canonicalization only | Re-run every qᵢ and compare. On mismatch, recompute f |
+| B3c | **Prompt-cached exact replay** | B3, but any recompute after a mismatch reuses the cached prompt prefix (the same stable context as the original derivation), priced at the cached-input rate |
+| B4L | **Lossless canonical replay** | B3 with canonicalization that is provably information-preserving for f: set/bag ordering when no ORDER BY applies, encoding normalization, stable serialization. Sound under the §3.1 assumptions |
+| B5 | **Version-stamp validation** | Compare source versions of observed records or keys (PlanFence / Invalidation Contracts analogue). Requires versions |
+| B6 | **Dependency-cascade memory** (Tether/TMS-style) | Withdrawal triggers recompute |
+| NC1 | **Negative control: unconditional reuse** | Labelled unsafe. Calibrates the harness's ability to detect unsafe reuse |
+| NC2 | **Negative control: no authorization check** | Labelled unsafe. Calibrates authorization tests |
 
-## 5. Candidate policies under test
+**Rule.** H0 and every kill/narrow criterion compare against **min over all eligible baselines** in {B0, B0f, B1, B1a, B2, B3, B3c, B4L, B5, B6}. Tuning effort is equal and logged (§10).
 
-| ID | Policy | Soundness class |
+## 6. Candidate policies
+
+| ID | Policy | Class |
 |---|---|---|
-| C1 | **Materiality predicate, S1.** A hand-written or derived sufficient predicate per conclusion template, including absence clauses where H2 requires them. | S1 |
-| C2 | **Materiality predicate, S2.** A cheaper predicate *without* absence clauses, with an empirically estimated false-accept rate. | S2 (reported with a confidence interval) |
-| C3 | **Tiered.** Run C2 or an S3 filter as a cheap pre-check; on doubt fall through to B4 or B3; then recompute. | Inherits the strongest class on the path that actually reused |
-| C4 *(optional, later gate)* | **LLM claim-check** ("does *this* claim still hold given this diff?") in the style of 2609.25130. | S3 unless calibrated to S2 |
+| C1 | **Materiality predicate with a sufficiency argument** (includes absence clauses where needed; uses an indexed or aggregate access path when available) | S1 |
+| C1i | **Invariance-based canonical replay**: replay plus lossy canonicalization (projection onto the columns f reads, float tolerance) **with** a sufficient-invariance argument | S1 if the argument is checked, otherwise S2 |
+| C2 | **Cheaper predicate without full sufficiency** (e.g. omits absence clauses) | S2, reported with a one-sided upper bound on false-accept |
+| C3 | **Tiered**: an S2/S3 pre-filter, then B4L/B3, then recompute | The class of the path that actually served |
+| C4 *(later gate only)* | LLM claim-check (2609.25130 style) | S3 unless calibrated |
 
-## 6. Authorization model for E001 (minimal)
-- Each source record carries a scope set. A knowledge item's *required scope* is the union of the scopes of every record in its **observation and justified scope**. This differs from MAP-Graph's intersection-of-visible approach (PA §2.2) and is stricter.
-- **Reuse is allowed only if** the reader's grants ⊇ the required scope, *evaluated at reuse time* (revocation must take effect).
-- **Fail closed when coverage is unknown.**
-- **Safety tests:**
-  - revocation between derivation and reuse;
-  - cross-principal reuse;
-  - a derived aggregate that leaks the existence of a hidden record ("no overdue invoices" over a set that includes invoices the reader cannot see).
-- **Out of scope for E001:** general information-flow control and differential privacy.
+## 7. Authorization model (conservative, mandatory per D3)
 
-## 7. Workload sweep
+**Grant semantics** (E001a):
+- Principals 𝒫. Each source record r has a read ACL, ACL_t(r) ⊆ 𝒫, which may change over time t.
+- Equivalently, each principal p has a grant set G_t(p) = {r : p ∈ ACL_t(r)}.
 
-**Data.** Synthetic, generator-based worlds only: a versioned relational source plus simulated external APIs. Public datasets are an optional stretch. No credentialed data. eICU demo-style data is *not* proposed.
+**Required record set R(K)** is the union of:
+- (a) every record observed in O;
+- (b) for conclusions with a quantifier, absence or aggregate, the **entire predicate domain** D(c): every record that *could* satisfy, or change, the predicate. This is not just the records returned. The conclusion "no overdue invoice for customer X" depends on every invoice of X, including ones the reader cannot see.
 
-**Conclusion templates.** Monotone (exists or member), threshold, aggregate (min, max, count), absence (none-with-property), top-k, and multi-hop derived-of-derived.
+**Serve rule.** Serve K to p at t_serve only if R(K) ⊆ G_{t_serve}(p). Equivalently, p ∈ ⋂_{r∈R(K)} ACL_{t_serve}(r).
 
-**Sweep axes** (each item is an axis and its proposed range):
+**Equivalence note (correcting rev. 1).** Under this model, "the union of required grants is covered" and "p is in the intersection of the permitted principals" are the **same condition**. Rev. 1 claimed the rule was stricter than MAP-Graph's scope intersection; that claim is withdrawn. The real differences from MAP-Graph (PA §2.2) are (i) *which* record set is used (observed plus predicate domain, versus visible-at-write) and (ii) *when* it is evaluated (at serve time, versus at write time). Whether these differences matter is an empirical question for E001a; no strictness is claimed without proof.
 
-| Axis | Proposed range |
+**Absence over partially visible domains.** If p cannot read all of D(c), stored c is **denied**. The policy may instead recompute a *different, labelled* conclusion c_p over p's visible subset, which is reported as a distinct outcome and never passed off as c.
+
+**Revocation race.** Revocations are injected in (t_val, t_serve] and (t_serve, t_use]. The **linearization point** for authorization is the serve-time check against ACL_{t_serve}. Revocations after t_serve are reported as post-serve exposure, separately from unauthorized serves.
+
+**Unknown ACL** for any r ∈ R(K) → **deny** (§3.3).
+
+## 8. Workload sweep and regime reporting
+- **Data.** Synthetic, generator-based worlds only: a versioned relational source plus simulated external APIs with configurable access paths (point, range, indexed aggregate, notification, none).
+- **Conclusion templates.** Monotone existence, threshold, min/max, count, absence, top-k, multi-hop derived-of-derived. Both H2 counterexample families must be present as named cells.
+
+**Sweep axes:**
+
+| Axis | Range |
 |---|---|
-| Replay cost / inference cost ratio ρ | 10⁻³ … 10² (query cost units vs priced LLM tokens) |
-| Repeat rate per item | 1 … 100 reuses over a horizon |
-| Material change rate μ | 0 … 0.5 per interval |
-| Immaterial change rate ι | 0 … 0.9 per interval |
-| Result size | 1 … 10⁴ rows, with and without pagination limits |
-| Cache economics | cached-input multiplier {1.0, 0.5, 0.1}; cache-write multiplier {1.0, 1.25, 2.0}; TTL expiry on or off (parameterized, not tied to one vendor) |
-| Observation coverage | 100%, 99%, 95%, 70% (unlogged calls, truncated pages, missing absence clauses) |
-| Event or notification lag | 0 … several intervals, for push-based variants |
-| Permission churn | revocation rate 0 … 0.2; cross-principal reuse share 0 … 0.5 |
-| Source determinism | deterministic; non-deterministic ordering; non-deterministic content (e.g. a "latest" endpoint) |
-| Concurrency | changes injected between validate and use (TOCTOU) at rates 0 … 0.1 |
+| Replay cost / inference cost ratio | 10⁻³ … 10² |
+| Validation cost / replay cost ratio | Determined by access path; swept via the access-path axis |
+| Access paths per source | point, range, indexed aggregate, notification, none |
+| Repeat rate per item | 1 … 100 reuses |
+| Material change rate μ / immaterial change rate ι | μ 0 … 0.5, ι 0 … 0.9 per interval |
+| Result size and pagination | 1 … 10⁴ rows; page limits on or off |
+| Cache economics | cached-input multiplier c ∈ {1.0, 0.5, 0.25, 0.1, 0.025} (0.025–0.1 matches the reference prices cited in 2611.22238 §2); cache-write multiplier {1.0, 1.25, 2.0}; TTL expiry on or off |
+| Detectable coverage loss | 0 … 30% of observations |
+| Latent coverage loss | 0 … 30% of derivations, mediated-gateway assumption on or off |
+| Event / notification lag | 0 … several intervals |
+| Permission churn | revocation rate 0 … 0.2; cross-principal share 0 … 0.5; partially visible predicate domains on or off |
+| Source determinism | deterministic; non-deterministic order; non-deterministic content |
+| Concurrency | write and revocation injection rates per window in §4: 0 … 0.1 |
 
-## 8. Metrics
-- **Unsafe reuse rate.** The fraction of reuse events where the served c ≠ the oracle's c at use time. Stratified by cause: phantom, update, deletion, revocation, truncation, TOCTOU, non-determinism.
-- **Unauthorized reuse rate.** Served to a principal lacking the required scope.
-- **Missed-reuse rate.** Recomputed although c was still valid (an efficiency loss).
-- **Total cost per request, end to end.** This covers derivation, receipt and record storage, validation, replay, recompute and inference. Uncached-input, cached-input and output tokens are priced separately (PA §2.10), plus query cost units and wall-clock latency (simulated plus measured where feasible).
-- **Cost at matched safety.** For each regime, the cheapest policy with unsafe = 0 (S1-class policies), or with unsafe ≤ ε (reported separately for S2).
-- **Regime map.** The winner by (ρ, ι/μ, coverage, cache multiplier) region, with uncertainty bands.
+**No prevalence claims.** The grid is a design choice, not a sample of real deployments. Results are reported as a **regime map over parameter regions**. Nothing is said about how common a region is in practice. Where a region is motivated by an external source (e.g. cache price ranges), that source is cited, and still no frequency claim is made.
 
-## 9. Ground-truth oracle
-- **The generator owns the full world state at every tick.** The oracle recomputes c with the reference deterministic f over the *complete* current state, and evaluates authorization from the ground-truth grants. There is no LLM judge anywhere in the oracle (following Fallout Eq. 1, MemShift and 2609.25130; PA §5.8).
-- **Two oracle implementations, cross-checked.** For example, an imperative evaluator and a declarative or query evaluator (as in 2611.19859 §4.1). A known weakness: both share the generator.
+## 9. Outcomes, denominators and safety requirement
 
-## 10. Fair baseline tuning, seeds and uncertainty
-- **Equal tuning budget.** Every policy with parameters (τ for TTL, canonicalization rules, predicate templates) gets the same budget on *development seeds*. The tuning procedure is reported.
-- **Held-out seeds.** Worlds are sealed before any candidate policy runs on them. The results run is executed once.
-- **Uncertainty.** Cluster bootstrap over worlds (≥2,000 resamples) for differences. Report intervals, not just means.
-- **Multiple comparisons.** Pre-declare a small primary family (H1 at three regime points). Everything else is exploratory.
-- **LLM-in-the-loop stages** (if authorized later) use ≥3 seeds or replays per configuration. They report non-determinism, because hosted models drift even at temperature 0 (Tether §5).
-- **Raw outputs, the cache of every model or query call, and all failed runs are kept** (Director Desk #1).
+**Outcome partition per request** (mutually exclusive):
+1. **Served-stored, correct** (vs oracle at t_serve)
+2. **Served-stored, incorrect** (unsafe reuse)
+3. **Served-fresh, correct**
+4. **Served-fresh, incorrect.** The recompute itself was wrong: a concurrent write during recompute, a non-deterministic source, or an incomplete source that was not detected
+5. **Abstain/deny, warranted.** The oracle confirms the request could not be answered correctly or authorized
+6. **Abstain/deny, unwarranted.** A correct answer was available
+7. **Unauthorized serve.** Any serve with R(K) ⊄ G_{t_serve}(p). This flag can co-occur with 1–4, and is counted separately
 
-## 11. Staging and resources (no paid infrastructure assumed)
-- **E001a (proposed for G03 if approved).** A purely deterministic simulation in which f is code and inference cost is a *parameter*. It isolates the economics and soundness questions at near-zero cost on a laptop or CI-scale machine, with no external services.
-- **E001b (separate approval required).** A small LLM-in-the-loop replication with a locally served open model, to check that the parameterized inference costs and behavioural effects (e.g. extra steps, PA §2.10) do not overturn E001a.
-- **E001c (stretch, separate approval).** Hosted-API pricing validation. This needs owner approval for any spend.
+**Rates, with explicit denominators:**
 
-## 12. Preregistered kill / narrow criteria (structure only; thresholds TBD at G02)
+| Rate | Formula |
+|---|---|
+| Unsafe-reuse rate per request | (2) / all requests |
+| Unsafe-reuse rate per served reuse | (2) / ((1)+(2)) |
+| Fresh-recompute error rate | (4) / ((3)+(4)) |
+| Unwarranted-abstention rate | (6) / all requests |
+| Unauthorized-serve rate | (7) / all requests, and (7) / all serves |
+| TOCTOU exposure (secondary) | served answers incorrect vs the oracle at t_use, over all serves |
+
+**Safety requirement for eligibility.**
+- S1 candidates and sound baselines: **zero observed** unsafe reuse and zero unauthorized serves. This is always reported with the **one-sided 95% upper bound** (exact Clopper–Pearson; ≈3/n when zero events are observed in n trials, the "rule of three"). **Zero observed failures is not proof of zero risk.** The bound is the claim.
+- S2 candidates: the upper bound must be ≤ ε, a value fixed at G02.
+
+**Cost metrics.**
+- Total cost per request, end to end. This covers derivation, receipt storage, validation, replay, recompute and inference. Uncached-input, cached-input and output tokens are priced separately; query cost units and latency are added.
+- Report **cost at matched safety**: in each region, the cheapest eligible policy.
+
+## 10. Oracle, tuning, seeds and uncertainty
+- **Oracle.** The generator owns the full state at every logical tick and evaluates c, D(c) and the ACLs exactly. There are two independent evaluators (imperative and declarative), cross-checked. There is no LLM judge. Known weakness: both evaluators share the generator.
+- **Tuning.** An equal, logged budget per policy on development seeds. TTL, adaptive TTL, B2 granularity, lossless canonicalization rules and C-predicates are all tuned under the same budget.
+- **Held-out seeds** are sealed before any candidate runs, and run once.
+- **Uncertainty.** Cluster bootstrap over worlds (≥2,000 resamples) for cost differences. Exact binomial bounds for rare safety events. A small, pre-declared primary family; everything else is exploratory.
+- **Retention.** All raw outputs, failures and negative controls are kept.
+
+## 11. What E001 will not claim
+- That observation preservation implies truth.
+- That LLM materiality judgements are sound.
+- That synthetic regions reflect real-world prevalence.
+- That zero observed failures means zero risk.
+- Any product form before G05.
+
+## 12. Staging (per D2)
+- **E001a.** A deterministic simulation: f is code and inference cost is a parameter. No external services and no paid infrastructure. This is the proposed G03 scope if G02 approves it.
+- **E001b** *(separate approval)*. A small LLM-in-the-loop check with a locally served open model, to test behavioural side effects (e.g. extra steps, E7–E8).
+- **E001c** *(separate approval, owner spend approval)*. Hosted-API pricing validation.
+
+## 13. Kill / narrow criteria (structure only; thresholds fixed at G02)
+
+"Best eligible baseline" always means the minimum over the full eligible set in §5.
 
 | Trigger | Action |
 |---|---|
-| K1: No C-policy beats the best of {B0 with cache, B0f, B3, B4, B5} at matched safety in any regime whose prevalence ≥ *p\** in the sweep | **Kill** the materiality-validation claim; publish the negative result |
-| K2: C-policies win only where their unsafe rate > 0 (S2/S3 only) | **Narrow** to "empirical pre-filter in front of replay"; no soundness claim |
-| K3: Sound (S1) predicates win only for monotone or positive conclusions (H2 confirmed) | **Narrow** scope to that conclusion class; document the absence-class negative result |
-| K4: The fail-closed coverage requirement removes > *q\** of savings at realistic coverage (≤95%) | **Narrow** to sources with native versioning or notification, i.e. a DBMS-extension direction rather than an agent-layer gateway |
-| K5: Inference cost dominates validation cost by > *r\** in all plausible regimes | **Narrow** the research toward inference reuse (prompt and KV caching) rather than knowledge validation |
-| K6: Exact or canonical replay (B3/B4) is within *δ\** of the best policy everywhere | Recommend **replay as a library** (a receipt log plus replay), not a database |
+| K1: In **no** declared parameter region does any C-policy have lower expected cost than the best eligible baseline while meeting §9 | **Kill** the materiality claim; publish the negative result |
+| K2: C-policies beat the best eligible baseline only as S2 (bounded but non-zero false-accept), never as S1 | **Narrow** to "empirical pre-filter in front of replay"; no soundness claim |
+| K3: S1 wins occur only for conclusion classes with cheap access paths (indexed, aggregate or notification), whatever their monotonicity | **Narrow** to sources exposing those access paths, i.e. toward a DBMS-extension framing rather than a generic agent gateway |
+| K4: Fail-closed under realistic detectable loss removes > *q\** of the C-policy savings, *or* any policy is unsafe under latent loss unless the mediated-gateway assumption holds | **Narrow** to mediated or instrumented read paths, and state the assumption as a deployment requirement |
+| K5 (revised): The expected-cost advantage of validation over replay is below *δ\** in every region. Per request, the comparison is: **C cost** = V + P(recompute \| C)·(R_q + I) against **B3c cost** = R_q + P(mismatch \| B3)·I_cached, where V = validation cost, R_q = replay query cost, I = inference cost and I_cached = prompt-cached inference cost. The advantage vanishes when V ≈ R_q, or when P(recompute \| C) ≈ 1 | **Narrow** toward replay (receipt log plus replay library). Note: high inference cost *favours* reuse whenever the recompute probability is low. Rev. 1's K5 had this backwards and is withdrawn |
+| K6: B3, B3c or B4L is within *δ\** of the best policy everywhere | Recommend **replay as a library**, not a database |
 
-Thresholds *p\**, *q\**, *r\** and *δ\** are deliberately left unset until the G02 protocol review.
+Thresholds *q\** and *δ\** and the S2 ε are set at G02.
 
-## 13. What E001 will not claim
-- That observation preservation implies truth.
-- That an LLM materiality judgement is sound.
-- That results on synthetic worlds transfer to production without replication.
-- Any product form (database, extension, gateway or library) before G05.
+## 14. Pre-G02 conditions and remaining open items
 
-## 14. Open questions for the director
-1. **Regime mapping is partly prior art.** 2610.03902 maps memory vs re-reading on one clinical dataset. Should E001's contribution be explicitly restricted to *exact query replay vs materiality validation* (H1/H2), dropping broad memory-vs-re-reading claims?
-2. **Is the deterministic-simulation-first plan (E001a) acceptable as the G03 scope,** with LLM-in-the-loop deferred to a separate approval?
-3. **Authorization rule.** Should E001 use the *union-of-observed-and-justified-scope* rule (§6), or also compare against MAP-Graph-style intersection-of-visible scopes as a baseline?
-4. **Second literature pass.** The 2026 corpus is growing weekly. Should a second literature sweep be a G02 entry condition?
-5. **Author-cluster concentration.** Several supportive results come from one author cluster (PA §0). Should G02 require reproducing at least one external result (e.g. Tether's released cache, MemShift's scorer) before relying on it?
+**Targeted second literature pass (D4)**, required before protocol freeze. Proposed scope:
+1. Adaptive / freshness-aware TTL for LLM and agent caches.
+2. Prompt-cached replay or recompute cost studies after 2026-11-17.
+3. Recent query–update independence and irrelevant-update work for aggregates and absence queries, and index-based validation.
+4. Authorization of derived data: view-based access control and inference control in recent literature.
+5. Any new exact-replay vs materiality studies.
+
+**Other items:**
+- **External replication (D5):** optional. Currently no central E001 claim depends on an external result. If G02 makes one central (e.g. the 2610.03902 cost ordering, used to set baselines), replicate it or treat it only as motivation.
+- **Remaining unverifiable claims:** see PRIOR_ART Appendix B.
